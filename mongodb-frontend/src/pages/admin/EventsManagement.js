@@ -1,4 +1,4 @@
-// src/pages/admin/EventManagement.js (Note: filename should be EventsManagement.js)
+// src/pages/admin/EventsManagement.js
 import React, { useState, useEffect } from "react";
 import {
   Container,

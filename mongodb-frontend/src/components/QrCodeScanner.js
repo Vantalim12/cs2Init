@@ -1,4 +1,4 @@
-// src/components/QrCodeScanner.js
+// mongodb-frontend/src/components/QrCodeScanner.js
 import React, { useState } from "react";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import { Card, Alert, Button, Spinner } from "react-bootstrap";
@@ -10,8 +10,22 @@ const QrCodeScanner = ({ onScan, onError }) => {
   const handleScan = (result) => {
     if (result) {
       try {
-        // Parse QR code data
-        const scannedData = JSON.parse(result);
+        console.log("Raw QR code result:", result);
+
+        // Some QR scanners return the data as a text property
+        const qrData = result.text || result;
+
+        // Try to parse QR code data
+        let scannedData;
+        try {
+          scannedData = JSON.parse(qrData);
+        } catch (err) {
+          console.error("Failed to parse QR code data:", err);
+          // If parsing fails, pass the raw data
+          scannedData = qrData;
+        }
+
+        console.log("Processed QR code data:", scannedData);
 
         // Call the provided callback
         onScan(scannedData);
@@ -19,15 +33,17 @@ const QrCodeScanner = ({ onScan, onError }) => {
         // Stop scanning
         setScanning(false);
       } catch (err) {
-        setError("Invalid QR code format");
+        console.error("QR code processing error:", err);
+        setError("Error processing QR code");
         if (onError) {
-          onError("Invalid QR code format");
+          onError("Error processing QR code");
         }
       }
     }
   };
 
   const handleError = (err) => {
+    console.error("QR scanner error:", err);
     setError(err?.message || "QR code scanning error");
     if (onError) {
       onError(err?.message || "QR code scanning error");
@@ -56,7 +72,8 @@ const QrCodeScanner = ({ onScan, onError }) => {
             <QrScanner
               onDecode={handleScan}
               onError={handleError}
-              containerStyle={{ width: "100%" }}
+              constraints={{ facingMode: "environment" }}
+              style={{ width: "100%" }}
             />
             <div className="text-center mt-3">
               <p className="text-muted">

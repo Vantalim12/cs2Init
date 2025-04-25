@@ -1,4 +1,4 @@
-// routes/qrcode.js
+// mongodb-backend/routes/qrcode.js
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
@@ -57,9 +57,22 @@ router.post(
 
     try {
       const { scannedData } = req.body;
+      console.log("Verifying QR code data:", scannedData);
+
+      // Parse scanned data if it's a string
+      let parsedData;
+      try {
+        parsedData =
+          typeof scannedData === "string"
+            ? JSON.parse(scannedData)
+            : scannedData;
+      } catch (parseError) {
+        console.error("Error parsing QR code data:", parseError);
+        return res.status(400).json({ error: "Invalid QR code format" });
+      }
 
       // Determine QR code type and verify accordingly
-      if (!scannedData.type) {
+      if (!parsedData.type) {
         return res
           .status(400)
           .json({ error: "Invalid QR code format: missing type" });
@@ -68,11 +81,11 @@ router.post(
       let verified = false;
       let data = null;
 
-      switch (scannedData.type) {
+      switch (parsedData.type) {
         case "Resident": {
           // Verify resident QR code
           const resident = await Resident.findOne({
-            residentId: scannedData.id,
+            residentId: parsedData.id,
           });
           verified = !!resident;
           if (verified) {
@@ -80,6 +93,9 @@ router.post(
               id: resident.residentId,
               name: `${resident.firstName} ${resident.lastName}`,
               type: "Resident",
+              gender: resident.gender,
+              address: resident.address,
+              contactNumber: resident.contactNumber,
             };
           }
           break;
@@ -88,7 +104,7 @@ router.post(
         case "Family Head": {
           // Verify family head QR code
           const familyHead = await FamilyHead.findOne({
-            headId: scannedData.id,
+            headId: parsedData.id,
           });
           verified = !!familyHead;
           if (verified) {
@@ -96,6 +112,9 @@ router.post(
               id: familyHead.headId,
               name: `${familyHead.firstName} ${familyHead.lastName}`,
               type: "Family Head",
+              gender: familyHead.gender,
+              address: familyHead.address,
+              contactNumber: familyHead.contactNumber,
             };
           }
           break;
@@ -103,7 +122,7 @@ router.post(
 
         case "Event": {
           // Verify event QR code
-          const event = await Event.findById(scannedData.id);
+          const event = await Event.findById(parsedData.id);
           verified = !!event;
           if (verified) {
             data = {
@@ -112,6 +131,8 @@ router.post(
               date: event.eventDate,
               location: event.location,
               type: "Event",
+              category: event.category,
+              attendees: event.attendees?.length || 0,
             };
           }
           break;
@@ -120,7 +141,7 @@ router.post(
         case "DocumentRequest": {
           // Verify document request QR code
           const docRequest = await DocumentRequest.findOne({
-            requestId: scannedData.requestId,
+            requestId: parsedData.requestId,
           });
           verified =
             !!docRequest &&
@@ -144,15 +165,21 @@ router.post(
       }
 
       if (!verified) {
+        console.log(
+          `Verification failed: ${parsedData.type} with ID ${
+            parsedData.id || parsedData.requestId
+          } not found`
+        );
         res.status(404).json({
           verified: false,
-          message: `${scannedData.type} not found or not valid`,
+          message: `${parsedData.type} not found or not valid`,
         });
       } else {
+        console.log("Verification successful:", data);
         res.json({
           verified: true,
           data,
-          type: scannedData.type,
+          type: parsedData.type,
         });
       }
     } catch (error) {

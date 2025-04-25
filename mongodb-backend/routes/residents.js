@@ -1,4 +1,4 @@
-// routes/residents.js
+// mongodb-backend/routes/residents.js
 const express = require("express");
 const router = express.Router();
 const { body, validationResult } = require("express-validator");
@@ -106,22 +106,38 @@ router.post(
   "/",
   isAdmin,
   [
-    body("firstName").not().isEmpty().withMessage("First name is required"),
-    body("lastName").not().isEmpty().withMessage("Last name is required"),
+    body("firstName")
+      .not()
+      .isEmpty()
+      .trim()
+      .withMessage("First name is required"),
+    body("lastName")
+      .not()
+      .isEmpty()
+      .trim()
+      .withMessage("Last name is required"),
     body("gender").not().isEmpty().withMessage("Gender is required"),
-    body("birthDate").isDate().withMessage("Valid birth date is required"),
-    body("address").not().isEmpty().withMessage("Address is required"),
-    body("contactNumber").optional(),
+    body("birthDate").not().isEmpty().withMessage("Birth date is required"),
+    body("address").not().isEmpty().trim().withMessage("Address is required"),
+    body("contactNumber").optional().trim(),
     body("familyHeadId").optional(),
   ],
   async (req, res) => {
     // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        error: errors
+          .array()
+          .map((err) => err.msg)
+          .join(", "),
+        errors: errors.array(),
+      });
     }
 
     try {
+      console.log("Creating resident with data:", req.body);
+
       // Check if family head exists if provided
       if (req.body.familyHeadId) {
         const familyHead = await FamilyHead.findOne({
@@ -137,17 +153,18 @@ router.post(
 
       // Generate unique resident ID
       const residentId = await generateResidentId();
+      console.log("Generated resident ID:", residentId);
 
       // Create new resident
       const newResident = new Resident({
         residentId,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+        firstName: req.body.firstName.trim(),
+        lastName: req.body.lastName.trim(),
         gender: req.body.gender,
-        birthDate: req.body.birthDate,
-        address: req.body.address,
-        contactNumber: req.body.contactNumber || "",
-        familyHeadId: req.body.familyHeadId || "",
+        birthDate: new Date(req.body.birthDate),
+        address: req.body.address.trim(),
+        contactNumber: req.body.contactNumber?.trim() || "",
+        familyHeadId: req.body.familyHeadId || null,
         registrationDate: new Date(),
         type: "Resident",
       });

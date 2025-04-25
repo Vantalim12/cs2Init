@@ -1,4 +1,4 @@
-// src/pages/admin/SystemTools.js
+// mongodb-frontend/src/pages/admin/SystemTools.js
 import React, { useState } from "react";
 import {
   Container,
@@ -20,6 +20,8 @@ import {
   FaSearch,
   FaTools,
   FaCalendarAlt,
+  FaUser,
+  FaFileAlt,
 } from "react-icons/fa";
 import DataBackup from "../../components/DataBackup";
 import QrCodeScanner from "../../components/QrCodeScanner";
@@ -37,6 +39,7 @@ const SystemTools = () => {
   // Handle QR code scan
   const handleScan = async (data) => {
     setScanning(false);
+    console.log("Scanned data received:", data);
 
     if (!data) {
       setError("No data found in QR code");
@@ -48,7 +51,9 @@ const SystemTools = () => {
       setError("");
 
       // Verify QR code with backend
+      console.log("Sending to API for verification:", data);
       const response = await qrCodeService.verifyQrCode(data);
+      console.log("Verification response:", response.data);
 
       // Set scan result
       setScanResult(response.data);
@@ -56,8 +61,10 @@ const SystemTools = () => {
       toast.success("QR code verified successfully");
     } catch (err) {
       console.error("QR verification error:", err);
-      setError(err.response?.data?.error || "Failed to verify QR code");
-      toast.error("Failed to verify QR code");
+      const errorMessage =
+        err.response?.data?.error || "Failed to verify QR code";
+      setError(errorMessage);
+      toast.error(errorMessage);
       setScanResult(null);
     } finally {
       setVerifyingQR(false);
@@ -66,6 +73,7 @@ const SystemTools = () => {
 
   // Handle QR code scanner error
   const handleScanError = (err) => {
+    console.error("Scanner error:", err);
     setError(`Scanner error: ${err}`);
     setScanning(false);
   };
@@ -91,11 +99,30 @@ const SystemTools = () => {
           fields: [
             { label: "ID", value: data.id },
             { label: "Name", value: data.name },
+            { label: "Gender", value: data.gender || "N/A" },
+            { label: "Address", value: data.address || "N/A" },
+            { label: "Contact", value: data.contactNumber || "N/A" },
             { label: "Type", value: type },
             { label: "Verification", value: verified ? "Valid" : "Invalid" },
           ],
           status: verified ? "success" : "danger",
-          icon: <FaQrcode />,
+          icon: <FaUser />,
+        };
+
+      case "Family Head":
+        return {
+          title: "Family Head Information",
+          fields: [
+            { label: "ID", value: data.id },
+            { label: "Name", value: data.name },
+            { label: "Gender", value: data.gender || "N/A" },
+            { label: "Address", value: data.address || "N/A" },
+            { label: "Contact", value: data.contactNumber || "N/A" },
+            { label: "Type", value: type },
+            { label: "Verification", value: verified ? "Valid" : "Invalid" },
+          ],
+          status: verified ? "success" : "danger",
+          icon: <FaUser />,
         };
 
       case "DocumentRequest":
@@ -113,7 +140,7 @@ const SystemTools = () => {
             { label: "Verification", value: verified ? "Valid" : "Invalid" },
           ],
           status: verified ? "success" : "danger",
-          icon: <FaFileDownload />,
+          icon: <FaFileAlt />,
         };
 
       case "Event":
@@ -124,6 +151,8 @@ const SystemTools = () => {
             { label: "Title", value: data.title },
             { label: "Date", value: new Date(data.date).toLocaleDateString() },
             { label: "Location", value: data.location },
+            { label: "Category", value: data.category },
+            { label: "Attendees", value: data.attendees || 0 },
             { label: "Verification", value: verified ? "Valid" : "Invalid" },
           ],
           status: verified ? "success" : "danger",

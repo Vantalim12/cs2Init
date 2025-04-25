@@ -1,9 +1,8 @@
-// index.js - Main server file
+// mongodb-backend/index.js - Main server file
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 
 // Import routes
 const authRoutes = require("./routes/auth");
@@ -13,6 +12,7 @@ const dashboardRoutes = require("./routes/dashboard");
 const announcementRoutes = require("./routes/announcements");
 const eventRoutes = require("./routes/events");
 const documentRoutes = require("./routes/documents");
+const qrcodeRoutes = require("./routes/qrcode");
 
 // Initialize Express app
 const app = express();
@@ -26,7 +26,8 @@ mongoose
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -36,6 +37,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/announcements", announcementRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/qrcode", qrcodeRoutes);
 
 // Root route
 app.get("/", (req, res) => {

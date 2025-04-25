@@ -1,8 +1,11 @@
-// src/services/api.js - Updated with QR code and backup functionality
+// mongodb-frontend/src/services/api.js - Updated with QR code and backup functionality
 import axios from "axios";
 
 // Base API URL
 const API_URL = process.env.REACT_APP_API_URL || "";
+
+// Set default headers for axios
+axios.defaults.headers.common["Content-Type"] = "application/json";
 
 // Dashboard service
 export const dashboardService = {

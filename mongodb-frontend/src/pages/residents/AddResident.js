@@ -1,4 +1,4 @@
-// src/pages/residents/AddResident.js
+// mongodb-frontend/src/pages/residents/AddResident.js
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -82,17 +82,31 @@ const AddResident = () => {
 
       // Prepare data for submission
       const submitData = {
-        ...formData,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        gender: formData.gender,
         birthDate: new Date(formData.birthDate).toISOString(),
+        address: formData.address.trim(),
+        contactNumber: formData.contactNumber.trim(),
+        familyHeadId: formData.familyHeadId || null,
       };
 
-      await residentService.create(submitData);
+      console.log("Submitting resident data:", submitData);
+
+      const response = await residentService.create(submitData);
+      console.log("Resident creation response:", response);
+
       toast.success("Resident added successfully");
       navigate("/dashboard/residents");
     } catch (err) {
       console.error("Error adding resident:", err);
-      setError(err.response?.data?.error || "Failed to add resident");
-      toast.error(err.response?.data?.error || "Failed to add resident");
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to add resident";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

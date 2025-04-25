@@ -11,7 +11,7 @@ const AuthLayout = () => {
         <div className="auth-card">
           <div className="auth-logo">
             <Logo width={80} height={80} />
-            <h4 className="mt-3">Barangay Management System</h4>
+            <h4 className="mt-3">Barangay Kabacsanan Management System</h4>
           </div>
           <Outlet />
         </div>

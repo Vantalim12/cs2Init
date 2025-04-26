@@ -45,11 +45,16 @@ const Login = () => {
   };
 
   return (
-    <>
+    <div className="px-2">
       <h2 className="auth-title">Login to Your Account</h2>
 
       {error && (
-        <Alert variant="danger" dismissible onClose={() => setError("")}>
+        <Alert
+          variant="danger"
+          dismissible
+          onClose={() => setError("")}
+          className="py-2 px-3"
+        >
           {error}
         </Alert>
       )}
@@ -69,6 +74,7 @@ const Login = () => {
               placeholder="Enter your username"
               required
               disabled={loading}
+              autoComplete="username"
             />
           </div>
         </Form.Group>
@@ -87,6 +93,7 @@ const Login = () => {
               placeholder="Enter your password"
               required
               disabled={loading}
+              autoComplete="current-password"
             />
           </div>
         </Form.Group>
@@ -115,7 +122,7 @@ const Login = () => {
           Don't have an account? <Link to="/register">Register here</Link>
         </p>
       </div>
-    </>
+    </div>
   );
 };
 
